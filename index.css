@@ -1,0 +1,318 @@
+:root {
+    --navbar-image-size: 42px;
+    --navbar-github-size: 28px;
+    --navbar-fold-size: 24px;
+    --navbar-height: 64px;
+    --font-scale: 1;
+}
+
+*[data-tooltip] {
+    position: relative;
+}
+
+*[data-tooltip]:hover:after {
+    opacity: 1;
+    visibility: visible;
+    -webkit-transform: translate(-50%, -8px) scale(1);
+    transform: translate(-50%, -8px) scale(1);
+}
+
+*[data-tooltip]:after {
+    position: absolute;
+    content: attr(data-tooltip);
+    background: rgb(48, 48, 48);
+    padding: 12px;
+    text-align: center;
+    color: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+    border-radius: 8px;
+    -webkit-transform: translate(-50%, -8px) scale(0);
+    transform: translate(-50%, -8px) scale(0);
+    display: flex;
+    align-items: center;
+    height: 12px;
+    pointer-events: none;
+    box-shadow: 0 0 16px 4px rgba(0, 0, 0, .15);
+    transform-origin: bottom center;
+    top: auto;
+    bottom: 100%;
+    left: 50%;
+    z-index: 5;
+    opacity: 0;
+    visibility: hidden;
+    -webkit-transition: 0.15s ease-in;
+    transition: 0.15s ease-in;
+}
+
+a {
+    color: unset;
+    text-decoration: none;
+}
+
+html {
+    overflow-x: hidden;
+    background: rgb(17, 17, 17);
+    color: #efefef;
+}
+
+body {
+    margin: 0;
+}
+
+*::selection {
+    background-color: rgba(255, 255, 255, .2);
+}
+
+* {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color emoji;
+    box-sizing: border-box;
+}
+
+.navbar,
+.navbar *,
+.controller,
+.controller * {
+    transition: all .1s ease-in-out;
+}
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: row;
+    height: var(--navbar-height);
+    align-items: center;
+    padding: 1rem;
+    gap: 8px;
+    box-shadow: 0 0 0px 1px rgb(49 49 49);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    z-index: 99999999;
+    background: rgb(24 24 24 / 75%);
+    backdrop-filter: blur(32px);
+    min-height: var(--navbar-height);
+    width: calc(100% - 2rem);
+    border-radius: .875rem;
+}
+
+.navbar-icon {
+    width: var(--navbar-image-size);
+    height: var(--navbar-image-size);
+    min-width: var(--navbar-image-size);
+    min-height: var(--navbar-image-size);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+.navbar-icon-image {
+    width: var(--navbar-image-size);
+    height: var(--navbar-image-size);
+    border-radius: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    background-image: url("./icon.svg");
+    background-size: 2rem;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.navbar-items {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.navbar-item,
+.menu-item {
+    cursor: pointer;
+    font-size: 14px;
+    color: rgb(156, 163, 175);
+    text-decoration: none;
+}
+
+.navbar-left,
+.navbar-right {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    overflow: hidden;
+}
+
+.navbar-right {
+    margin-left: auto;
+    gap: 18px;
+}
+
+.navbar-github {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    min-width: 40px;
+    min-height: 40px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+}
+
+.navbar-github svg {
+    width: var(--navbar-github-size);
+    height: var(--navbar-github-size);
+    fill: currentColor;
+}
+
+.navbar-title {
+    font-size: 16px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: min-content;
+    flex: auto;
+    min-width: 0;
+    width: auto;
+}
+
+.navbar-left {
+    gap: 12px;
+}
+
+.countdown-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.content {
+    width: -webkit-fill-available;
+    height: -webkit-fill-available;
+}
+
+.countdown-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.countdown-timer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.countdown {
+    display: flex;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+.countdown-number {
+    padding: 0 2rem;
+    font-size: calc(6rem*var(--font-scale));
+    font-weight: 800;
+}
+
+.countdown-unit {
+    background: rgb(30, 30, 30);
+    padding: .5rem .75rem;
+    border-radius: 999rem;
+    box-shadow: 0 0 0px 1px rgb(49 49 49);
+}
+
+.controller-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: -webkit-fill-available;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 2rem;
+}
+
+.controller {
+    background: rgb(31 31 31);
+    padding: .5rem;
+    border-radius: 1rem;
+    display: flex;
+    box-shadow: 0 0 0px 1px rgb(49 49 49);
+    gap: .5rem;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+.controller-group {
+    display: flex;
+    gap: .5rem;
+}
+
+.controller-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    background: none;
+    border: none;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+}
+
+.controller-button:hover {
+    background: rgb(48, 48, 48);
+    box-shadow: 0 1px 1px 1px rgba(0, 0, 0, .15);
+}
+
+.controller-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.controller-font-size-current {
+    height: 2.5rem;
+    padding: 0 1rem;
+    background: rgb(24, 24, 24);
+    border-radius: .5rem;
+    box-shadow: 0 0 0px 1px rgb(49 49 49);
+    display: flex;
+    align-items: center;
+}
+
+@media screen and (max-width: 768px) {
+    .countdown-number {
+        font-size: calc(6rem*var(--font-scale));
+    }
+}
+
+@media screen and (max-width: 640px) {
+    .countdown-number {
+        font-size: calc(5rem*var(--font-scale));
+    }
+}
+
+@media screen and (max-width: 320px) {
+    .countdown-number {
+        font-size: calc(4rem*var(--font-scale));
+    }
+}
