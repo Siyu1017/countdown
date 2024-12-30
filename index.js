@@ -339,7 +339,7 @@
             }
         }, 2000);
     }
-    window.addEventListener('pointermove', (e) => {
+    function setUI() {
         if (showUI == false) {
             if (navbar.contains(e.target) || controller.contains(e.target)) {
                 return underUI = true;
@@ -351,6 +351,12 @@
             controller.style.transform = 'translateY(0)';
             hideUI();
         }
+    }
+    window.addEventListener('touchstart', (e) => {
+        setUI();
+    })
+    window.addEventListener('pointermove', (e) => {
+        setUI();
     })
 
     setTimeout(() => {
