@@ -4,6 +4,7 @@
     --navbar-fold-size: 24px;
     --navbar-height: 64px;
     --font-scale: 1;
+    --countdown-scale: 1;
 }
 
 *[data-tooltip] {
@@ -15,6 +16,7 @@
     visibility: visible;
     -webkit-transform: translate(-50%, -8px) scale(1);
     transform: translate(-50%, -8px) scale(1);
+    pointer-events: none;
 }
 
 *[data-tooltip]:after {
@@ -69,11 +71,14 @@ body {
     box-sizing: border-box;
 }
 
-.navbar,
 .navbar *,
-.controller,
 .controller * {
     transition: all .1s ease-in-out;
+}
+
+.navbar,
+.controller {
+    transition: all .2s ease-in-out;
 }
 
 .container {
@@ -209,6 +214,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
 }
 
 .countdown-timer {
@@ -216,6 +222,7 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    transition: all .2s ease-in-out;
 }
 
 .countdown {
@@ -223,6 +230,12 @@ body {
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
+    transform: scale(var(--countdown-scale));
+    transition: all .1s ease-in-out;
+}
+
+.countdown * {
+    transition: all .1s ease-in-out;
 }
 
 .countdown-number {
@@ -265,6 +278,14 @@ body {
     gap: .5rem;
 }
 
+.controller-group+.controller-group:before {
+    content: '';
+    width: 1.5px;
+    background: rgb(49 49 49);
+    height: 1.5rem;
+    margin: auto 0;
+}
+
 .controller-button {
     width: 2.5rem;
     height: 2.5rem;
@@ -279,9 +300,14 @@ body {
     color: currentColor;
 }
 
-.controller-button:hover {
+.controller-button:is(:hover, :focus-visible) {
     background: rgb(48, 48, 48);
     box-shadow: 0 1px 1px 1px rgba(0, 0, 0, .15);
+}
+
+.controller-button:focus-visible {
+    outline: none;
+    box-shadow: 0px 0px 0px 2px rgb(62, 123, 255);
 }
 
 .controller-button svg {
@@ -315,4 +341,8 @@ body {
     .countdown-number {
         font-size: calc(4rem*var(--font-scale));
     }
+}
+
+.invisible {
+    display: none;
 }

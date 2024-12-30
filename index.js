@@ -82,13 +82,13 @@
     var remainingSeconds = 0;
     var renderContent = ['00', '00', '00', '00'];
 
+    var start = Date.now();
+
     // Update remaining time
     function update() {
         now = Date.now();
+        now = new Date('2024/12/31 23:58:55').getTime() + (now - start);
         remainingSeconds = ~~((targetTime - now) / 1000);
-        if (remainingSeconds <= 0) {
-            // Times up
-        }
         var currentRemainings = {
             days: ~~(remainingSeconds / 86400),
             hours: ~~(remainingSeconds / 3600 % 24),
@@ -111,11 +111,17 @@
             remainings.seconds = currentRemainings.seconds;
             renderContent[3] = remainings.seconds.toString().padStart(2, '0');
         }
+        if (remainingSeconds <= 0) {
+            // Times up
+            renderContent[3] = '00';
+        }
         updateCountdown();
     }
 
     var fontSize = 144;
     var fontFamily = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color emoji';
+
+    const navbar = document.querySelector('.navbar');
 
     // Countdown
     const countdownContainer = document.querySelector('.countdown-container');
@@ -195,6 +201,12 @@
     controllerFullscreen.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
     controllerHide.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>`;
 
+    controllerFontSizeDecrease.setAttribute('data-tooltip', '減小字體大小');
+    controllerFontSizeIncrease.setAttribute('data-tooltip', '增大字體大小');
+    controllerFontSizeReset.setAttribute('data-tooltip', '重置字體大小');
+    controllerFullscreen.setAttribute('data-tooltip', '全螢幕');
+    controllerHide.setAttribute('data-tooltip', '隱藏 UI');
+
     controllerContainer.appendChild(controller);
     controller.appendChild(controllerFontSize);
     controllerFontSize.appendChild(controllerFontSizeDecrease);
@@ -203,7 +215,7 @@
     controllerFontSize.appendChild(controllerFontSizeReset);
     controller.appendChild(controllerView);
     controllerView.appendChild(controllerFullscreen);
-    controllerView.appendChild(controllerHide);
+    // controllerView.appendChild(controllerHide);
 
     function updateCountdown() {
         if (renderContent[0] != countdownDaysNumber.textContent) {
@@ -218,16 +230,132 @@
         if (renderContent[3] != countdownSecondsNumber.textContent) {
             countdownSecondsNumber.textContent = renderContent[3];
         }
+        if (remainingSeconds < 60) {
+            countdownDays.classList.add('invisible');
+            countdownHours.classList.add('invisible');
+            countdownMinutes.classList.add('invisible');
+            countdownSecondsUnit.classList.add('invisible');
+            countdownSecondsNumber.style.transform = 'scale(1.5)';
+        }
     }
 
-    var scales = [0.1, 0.25, 0.33, 0.5, 0.75, 0.8, 0.9, 1, 1.1, 1.2, 1.5, 1.75, 2, 2.5, 4, 5, 7.5, 8, 10];
-    var scaleIndex=scales.indexOf(1);
-    controllerFontSizeDecrease.addEventListener("click",()=>{
-scaleIndex+=1;
-if (scaleIndex>scales.length-1){
-    scaleIndex=scales.length-1;
-}
+    var showUI = false;
+    var scales = [0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.33, 0.4, 0.5, 0.66, 0.75, 0.8, 0.9, 1, 1.1, 1.2, 1.35, 1.5, 1.75, 2, 2.5, 3.25, 4, 5, 7.5, 8, 10];
+    var scaleIndex = scales.indexOf(1);
+    controllerFontSizeDecrease.addEventListener("click", () => {
+        scaleIndex -= 1;
+        if (scaleIndex < 0) {
+            scaleIndex = 0;
+        }
+        controllerFontSizeCurrent.textContent = ~~(scales[scaleIndex] * 100) + '%';
+        document.querySelector(':root').style.setProperty('--countdown-scale', scales[scaleIndex]);
     })
+    controllerFontSizeIncrease.addEventListener("click", () => {
+        scaleIndex += 1;
+        if (scaleIndex > scales.length - 1) {
+            scaleIndex = scales.length - 1;
+        }
+        controllerFontSizeCurrent.textContent = ~~(scales[scaleIndex] * 100) + '%';
+        document.querySelector(':root').style.setProperty('--countdown-scale', scales[scaleIndex]);
+    })
+    controllerFontSizeReset.addEventListener("click", () => {
+        scaleIndex = scales.indexOf(1);
+        controllerFontSizeCurrent.textContent = '100%';
+        document.querySelector(':root').style.setProperty('--countdown-scale', 1);
+    })
+    function enterFullscreen(element) {
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+        } else {
+            console.error("Fullscreen API not supported");
+        }
+    }
+    function exitFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        } else {
+            console.error("Fullscreen API not supported");
+        }
+    }
+    function updateFullscreenIcon() {
+        if (document.fullscreenElement) {
+            controllerFullscreen.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minimize"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>`;
+            controllerFullscreen.setAttribute('data-tooltip', '離開全螢幕');
+        } else {
+            controllerFullscreen.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
+            controllerFullscreen.setAttribute('data-tooltip', '全螢幕');
+        }
+    }
+    controllerFullscreen.addEventListener("click", () => {
+        if (document.fullscreenElement) {
+            exitFullscreen();
+        } else {
+            enterFullscreen(document.documentElement);
+        }
+    })
+    window.addEventListener("resize", () => {
+        console.log('Resized');
+        updateFullscreenIcon();
+    });
+    document.addEventListener("fullscreenchange", () => {
+        console.log('Fullscreen changed');
+        updateFullscreenIcon();
+    });
+    controllerHide.addEventListener('click', () => {
+        showUI = !showUI == true;
+        if (showUI == false) {
+            navbar.style.transform = 'translateY(-200%)';
+            controller.style.transform = 'translateY(200%)';
+            controllerHide.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
+            controllerHide.setAttribute('data-tooltip', '顯示 UI');
+        } else {
+            navbar.style.transform = 'translateY(0)';
+            controller.style.transform = 'translateY(0)';
+            controllerHide.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>`;
+            controllerHide.setAttribute('data-tooltip', '隱藏 UI');
+        }
+    })
+    var lastMoveTime = Date.now();
+    var underUI = false;
+    function hideUI() {
+        setTimeout(() => {
+            if (Date.now() - lastMoveTime < 2000 || showUI == true || underUI == true) {
+                return;
+            } else {
+                navbar.style.transform = 'translateY(-200%)';
+                controller.style.transform = 'translateY(200%)';
+            }
+        }, 2000);
+    }
+    window.addEventListener('pointermove', (e) => {
+        if (showUI == false) {
+            if (navbar.contains(e.target) || controller.contains(e.target)) {
+                return underUI = true;
+            } else {
+                underUI = false;
+            }
+            lastMoveTime = Date.now();
+            navbar.style.transform = 'translateY(0)';
+            controller.style.transform = 'translateY(0)';
+            hideUI();
+        }
+    })
+
+    setTimeout(() => {
+        hideUI();
+    }, 4000);
 
     //update();
     //preciseInterval(update);
@@ -247,9 +375,68 @@ if (scaleIndex>scales.length-1){
     update();
     preciseInterval(update);
 
-    function render() {
-        canvasClarifier(canvas, ctx);
+    var initialized = false;
+    function init() {
+        if (initialized == true) {
+            return;
+        }
+        initialized = true;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', {
+            willReadFrequently: true
+        });
+        canvas.className = 'countdown-canvas';
+        countdown.appendChild(canvas);
 
-        requestAnimationFrame(render);
+        var gravity = 0.05;
+        var particles = [];
+
+        class Particle {
+            constructor(x, y) {
+                this.spawnX = x;
+                this.spawnY = y;
+                this.angle = random(0, 360) / 180 * Math.PI;
+                this.speed = random(3, 6);
+                this.spawn = Date.now();
+                this.size = random(2, 4);
+            }
+            getData() {
+                var now = Date.now();
+                var x = this.speed * Math.cos(this.angle) * (now - this.spawn) / 1000 + this.spawnX;
+                var y = this.speed * Math.sin(this.angle) * (now - this.spawn) / 1000 + gravity * ((now - this.spawn) / 1000) ^ 2 + this.spawnY;
+                if (y > canvas.offsetHeight + this.size * 2) {
+                    particles.splice(particles.indexOf(this), 1);
+                }
+                return { x, y };
+            }
+        }
+
+        class Firework {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.color = `hsl(${random(0, 360)}, 100%, 50%)`;
+                for (let i = 0; i < 100; i++) {
+                    new Particle(this.x, this.y);
+                }
+            }
+        }
+
+        function launch() {
+            var width = canvas.offsetWidth;
+            var height = canvas.offsetHeight;
+            var x = random(width / 4, width / 4 * 3);
+            var y = random(height / 4, height / 2);
+            var firework = new Firework(x, y);
+        }
+
+        function render() {
+            canvasClarifier(canvas, ctx);
+            launch();
+            requestAnimationFrame(render);
+        }
+        render();
     }
+
+    init();
 })();
