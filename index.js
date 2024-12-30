@@ -221,6 +221,13 @@
     }
 
     var scales = [0.1, 0.25, 0.33, 0.5, 0.75, 0.8, 0.9, 1, 1.1, 1.2, 1.5, 1.75, 2, 2.5, 4, 5, 7.5, 8, 10];
+    var scaleIndex=scales.indexOf(1);
+    controllerFontSizeDecrease.addEventListener("click",()=>{
+scaleIndex+=1;
+if (scaleIndex>scales.length-1){
+    scaleIndex=scales.length-1;
+}
+    })
 
     //update();
     //preciseInterval(update);
