@@ -352,9 +352,9 @@
             hideUI();
         }
     }
-    window.addEventListener('click', setUI)
-    window.addEventListener('touchstart', setUI)
-    window.addEventListener('pointermove', setUI)
+    window.addEventListener('click', (e) => { setUI(e) })
+    window.addEventListener('touchstart', (e) => { setUI(e) })
+    window.addEventListener('pointermove', (e) => { setUI(e) })
 
     setTimeout(() => {
         hideUI();
