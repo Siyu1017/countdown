@@ -82,12 +82,12 @@
     var remainingSeconds = 0;
     var renderContent = ['00', '00', '00', '00'];
 
-    var start = Date.now();
+    // var start = Date.now();
 
     // Update remaining time
     function update() {
         now = Date.now();
-        now = new Date('2024/12/31 23:58:55').getTime() + (now - start);
+        // now = new Date('2024/12/31 23:58:55').getTime() + (now - start);
         remainingSeconds = ~~((targetTime - now) / 1000);
         var currentRemainings = {
             days: ~~(remainingSeconds / 86400),
