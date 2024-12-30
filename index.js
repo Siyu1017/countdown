@@ -339,7 +339,7 @@
             }
         }, 2000);
     }
-    function setUI() {
+    function setUI(e) {
         if (showUI == false) {
             if (navbar.contains(e.target) || controller.contains(e.target)) {
                 return underUI = true;
