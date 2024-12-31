@@ -62,7 +62,7 @@
     function update() {
         now = Date.now();
         //now = new Date('2024/12/31 23:59:55').getTime() + (now - start);
-        remainingSeconds = ~~((targetTime - now) / 1000);
+        remainingSeconds = Math.round((targetTime - now) / 1000);
         var currentRemainings = {
             days: ~~(remainingSeconds / 86400),
             hours: ~~(remainingSeconds / 3600 % 24),
