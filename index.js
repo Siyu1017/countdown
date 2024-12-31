@@ -56,12 +56,12 @@
     var remainingSeconds = 0;
     var renderContent = ['00', '00', '00', '00'];
 
-    // var start = Date.now();
+    //var start = Date.now();
 
     // Update remaining time
     function update() {
         now = Date.now();
-        // now = new Date('2024/12/31 23:58:55').getTime() + (now - start);
+        //now = new Date('2024/12/31 23:59:55').getTime() + (now - start);
         remainingSeconds = ~~((targetTime - now) / 1000);
         var currentRemainings = {
             days: ~~(remainingSeconds / 86400),
@@ -83,7 +83,7 @@
         }
         if (currentRemainings.seconds != remainings.seconds) {
             remainings.seconds = currentRemainings.seconds;
-            renderContent[3] = remainings.seconds.toString().padStart(2, '0');
+            renderContent[3] = remainingSeconds < 60 ? remainings.seconds : remainings.seconds.toString().padStart(2, '0');
         }
         if (remainingSeconds <= 0) {
             // Times up
@@ -403,7 +403,10 @@
         }
 
         function render() {
-            canvasClarifier(canvas, ctx);
+            // canvasClarifier(canvas, ctx);
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
             if (particles.length < 500 && Math.random() < probability) {
                 createFirework();
             }
@@ -417,5 +420,13 @@
             requestAnimationFrame(render);
         }
         render();
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     }
 })();
