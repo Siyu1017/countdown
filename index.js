@@ -34,7 +34,7 @@
         let nextCallTime = Date.now() + 1000;
         function loop() {
             const currentTime = Date.now();
-            const ms = new Date(currentTime).getMilliseconds();
+            //const ms = new Date(currentTime).getMilliseconds();
             if (currentTime >= nextCallTime) {
                 callback();
                 nextCallTime = Math.ceil(currentTime / 1000) * 1000;
@@ -43,38 +43,12 @@
                 }
             }
             const delay = nextCallTime - Date.now();
-            const deviation = ms > 500 ? ms - 1000 : ms;
-            console.log(`Second : ${new Date(currentTime).getSeconds()}\n%cMs : ${new Date(currentTime).getMilliseconds()}\n%cDeviation : %c${deviation}`, `color:rgb(255,${~~((500 - Math.abs(deviation)) / 500 * 255)},${~~((500 - Math.abs(deviation)) / 500 * 255)})`, 'color:initial', `color:${Math.sign(deviation) >= 0 ? '#45ff45' : '#ff3d3d'}`, `\nDelay : ${delay}\nCorrected : ${delay - deviation}`);
+            //const deviation = ms > 500 ? ms - 1000 : ms;
+            //console.log(`Second : ${new Date(currentTime).getSeconds()}\n%cMs : ${new Date(currentTime).getMilliseconds()}\n%cDeviation : %c${deviation}`, `color:rgb(255,${~~((500 - Math.abs(deviation)) / 500 * 255)},${~~((500 - Math.abs(deviation)) / 500 * 255)})`, 'color:initial', `color:${Math.sign(deviation) >= 0 ? '#45ff45' : '#ff3d3d'}`, `\nDelay : ${delay}\nCorrected : ${delay - deviation}`);
             setTimeout(loop, delay);
         }
         loop();
     }
-
-    function executeOnExactSecond(callback) {
-        function loop() {
-            const now = new Date();
-            const ms = now.getMilliseconds();
-            const delay = 1000 - ms;
-
-            setTimeout(() => {
-                var deviation = ms > 500 ? 500 - ms : ms;
-                console.log(`Deviation : %c${deviation}`, `color:${Math.sign(deviation) >= 0 ? '#45ff45' : '#ff3d3d'}`);
-                // console.log("Exact second:", new Date());
-                callback();
-                loop();
-            }, delay);
-        }
-        loop();
-    }
-
-    /*
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', {
-        willReadFrequently: true
-    });
-    canvas.className = 'countdown-canvas';
-    countdown.appendChild(canvas);
-    */
 
     var targetTime = new Date('2025/01/01 00:00:00').getTime();
     var now = Date.now();
@@ -117,9 +91,6 @@
         }
         updateCountdown();
     }
-
-    var fontSize = 144;
-    var fontFamily = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color emoji';
 
     const navbar = document.querySelector('.navbar');
 
@@ -236,6 +207,10 @@
             countdownMinutes.classList.add('invisible');
             countdownSecondsUnit.classList.add('invisible');
             countdownSecondsNumber.style.transform = 'scale(1.5)';
+        }
+        if (remainingSeconds <= 0) {
+            countdownSeconds.classList.add('invisible');
+            init();
         }
     }
 
@@ -360,21 +335,6 @@
         hideUI();
     }, 4000);
 
-    //update();
-    //preciseInterval(update);
-    /*
-    var l = Date.now();
-    preciseInterval(() => {
-        var now = Date.now();
-        var p = now - l;
-        var d = p >= 1000 ? p - 1000 : 1000 - p;
-        var percent = (d / 1000);
-        percent = 1 - (percent > 1 ? 1 : percent < 0 ? 0 : percent);
-        console.log(`Called in ${(now - l)} ms ( %c${now - l >= 1000 ? '+' : '-'}${now - l >= 1000 ? now - l - 1000 : 1000 - (now - l)} %c)`, `color:rgb(255, ${~~(percent * 255)}, ${~~(percent * 255)})`, 'color:initial');
-        l = now;
-    });
-    */
-
     update();
     preciseInterval(update);
 
@@ -389,57 +349,73 @@
             willReadFrequently: true
         });
         canvas.className = 'countdown-canvas';
-        countdown.appendChild(canvas);
+        document.body.appendChild(canvas);
 
         var gravity = 0.05;
         var particles = [];
+        var probability = 0.04;
 
         class Particle {
             constructor(x, y) {
-                this.spawnX = x;
-                this.spawnY = y;
-                this.angle = random(0, 360) / 180 * Math.PI;
-                this.speed = random(3, 6);
-                this.spawn = Date.now();
-                this.size = random(2, 4);
-            }
-            getData() {
-                var now = Date.now();
-                var x = this.speed * Math.cos(this.angle) * (now - this.spawn) / 1000 + this.spawnX;
-                var y = this.speed * Math.sin(this.angle) * (now - this.spawn) / 1000 + gravity * ((now - this.spawn) / 1000) ^ 2 + this.spawnY;
-                if (y > canvas.offsetHeight + this.size * 2) {
-                    particles.splice(particles.indexOf(this), 1);
-                }
-                return { x, y };
-            }
-        }
-
-        class Firework {
-            constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.color = `hsl(${random(0, 360)}, 100%, 50%)`;
-                for (let i = 0; i < 100; i++) {
-                    new Particle(this.x, this.y);
+                this.vx = random(-5, 5);
+                this.vy = random(-5, 5);
+                this.size = random(3, 5);
+                this.alpha = Math.random() * .5 + .5;
+            }
+            update() {
+                this.x += this.vx;
+                this.vy += gravity;
+                this.y += this.vy;
+                this.alpha -= 0.01;
+                if (this.y > canvas.offsetHeight + this.size * 2 || this.x < -this.size || this.x > canvas.offsetWidth + this.size || this.alpha <= 0) {
+                    particles.splice(particles.indexOf(this), 1);
                 }
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.translate(this.x + this.size / 2, this.y + this.size / 2);
+                ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
             }
         }
 
-        function launch() {
-            var width = canvas.offsetWidth;
-            var height = canvas.offsetHeight;
-            var x = random(width / 4, width / 4 * 3);
-            var y = random(height / 4, height / 2);
-            var firework = new Firework(x, y);
+        function createFirework() {
+            var x = random(canvas.offsetWidth / 4, canvas.offsetWidth / 4 * 3);
+            var y = random(canvas.offsetHeight / 4, canvas.offsetHeight / 2);
+            var color = "rgb(" + random(55, 255) + "," + random(55, 255) + "," + random(55, 255) + ")";
+            var count = random(100, 150)
+            for (let i = 0; i < count; i++) {
+                var particle = new Particle(x, y);
+                particle.color = color;
+                var vy = Math.sqrt(25 - particle.vx * particle.vx);
+                if (Math.abs(particle.vy) > vy) {
+                    particle.vy = particle.vy > 0 ? vy : -vy;
+                }
+                particles.push(particle);
+            }
         }
 
         function render() {
             canvasClarifier(canvas, ctx);
-            launch();
+            if (particles.length < 500 && Math.random() < probability) {
+                createFirework();
+            }
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < particles.length; i++) {
+                particles[i].update();
+            }
+            for (var i = 0; i < particles.length; i++) {
+                particles[i].draw(ctx);
+            }
             requestAnimationFrame(render);
         }
         render();
     }
-
-    // init();
 })();
