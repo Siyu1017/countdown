@@ -304,6 +304,7 @@
     })
     var lastMoveTime = Date.now();
     var underUI = false;
+    var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
     function hideUI() {
         setTimeout(() => {
             if (Date.now() - lastMoveTime < 2000 || showUI == true || underUI == true) {
@@ -316,7 +317,7 @@
     }
     function setUI(e) {
         if (showUI == false) {
-            if (navbar.contains(e.target) || controller.contains(e.target)) {
+            if ((navbar.contains(e.target) || controller.contains(e.target)) && isTouchDevice == false) {
                 return underUI = true;
             } else {
                 underUI = false;
