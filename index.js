@@ -50,18 +50,15 @@
         loop();
     }
 
-    var targetTime = new Date('2025/01/01 00:00:00').getTime();
+    var targetTime = new Date('2026/01/01 00:00:00').getTime();
     var now = Date.now();
     var remainings = {};
     var remainingSeconds = 0;
     var renderContent = ['00', '00', '00', '00'];
 
-    //var start = Date.now();
-
     // Update remaining time
     function update() {
         now = Date.now();
-        //now = new Date('2024/12/31 23:59:55').getTime() + (now - start);
         remainingSeconds = Math.round((targetTime - now) / 1000);
         var currentRemainings = {
             days: ~~(remainingSeconds / 86400),
