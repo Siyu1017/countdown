@@ -16,6 +16,25 @@
         }
     }
 
+    function getJsonFromURL(url) {
+        if (!url) url = location.search;
+        var query = url.substr(1);
+        var result = {};
+        query.split("&").forEach(function (part) {
+            const i = part.indexOf('=');
+            if (i === -1) {
+                result[part] = true;
+            } else {
+                try {
+                    result[part.slice(0, i)] = decodeURIComponent(part.slice(i + 1));
+                } catch (e) {
+                    result[part.slice(0, i)] = part.slice(i + 1);
+                }
+            }
+        });
+        return result;
+    }
+
     function random(min, max, f = false) {
         if (!max) {
             max = min;
@@ -34,7 +53,6 @@
         let nextCallTime = Date.now() + 1000;
         function loop() {
             const currentTime = Date.now();
-            //const ms = new Date(currentTime).getMilliseconds();
             if (currentTime >= nextCallTime) {
                 callback();
                 nextCallTime = Math.ceil(currentTime / 1000) * 1000;
@@ -43,33 +61,37 @@
                 }
             }
             const delay = nextCallTime - Date.now();
-            //const deviation = ms > 500 ? ms - 1000 : ms;
-            //console.log(`Second : ${new Date(currentTime).getSeconds()}\n%cMs : ${new Date(currentTime).getMilliseconds()}\n%cDeviation : %c${deviation}`, `color:rgb(255,${~~((500 - Math.abs(deviation)) / 500 * 255)},${~~((500 - Math.abs(deviation)) / 500 * 255)})`, 'color:initial', `color:${Math.sign(deviation) >= 0 ? '#45ff45' : '#ff3d3d'}`, `\nDelay : ${delay}\nCorrected : ${delay - deviation}`);
             setTimeout(loop, delay);
         }
         loop();
     }
 
-    var targetTime = new Date('2026/01/01 00:00:00').getTime();
     var now = Date.now();
+    var targetTime = new Date('2026/01/01 00:00:00').getTime();
     var remainings = {};
     var remainingSeconds = 0;
     var renderContent = ['00', '00', '00', '00'];
+    let running = true;
+
+    if (getJsonFromURL()['last']) {
+        targetTime = now + Number(getJsonFromURL()['last']) * 1000;
+    }
 
     // Update remaining time
     function update() {
+        if (running == false) return;
         now = Date.now();
         remainingSeconds = Math.round((targetTime - now) / 1000);
         var currentRemainings = {
             days: ~~(remainingSeconds / 86400),
-            hours: ~~(remainingSeconds / 3600 % 24),
+            hours: ~~(remainingSeconds / 3600),
             minutes: ~~(remainingSeconds / 60 % 60),
             seconds: ~~(remainingSeconds % 60)
         }
-        if (currentRemainings.days != remainings.days) {
-            remainings.days = currentRemainings.days;
-            renderContent[0] = remainings.days.toString().padStart(2, '0');
-        }
+        //if (currentRemainings.days != remainings.days) {
+        //    remainings.days = currentRemainings.days;
+        //    renderContent[0] = remainings.days.toString().padStart(2, '0');
+        //}
         if (currentRemainings.hours != remainings.hours) {
             remainings.hours = currentRemainings.hours;
             renderContent[1] = remainings.hours.toString().padStart(2, '0');
@@ -89,14 +111,124 @@
         updateCountdown();
     }
 
-    const navbar = document.querySelector('.navbar');
+    window.timer = {
+        resume() {
+            running = true;
+            update();
+        },
+        pause() {
+            running = false;
+        }
+    }
+
+    const app = document.createElement('div');
+    const bg = document.createElement('div');
+    const content = document.createElement('div');
+    app.className = 'app';
+    bg.className = 'app-background';
+    content.className = 'app-content';
+    document.body.appendChild(app);
+    app.appendChild(bg);
+    app.appendChild(content);
+
+    // Atomsphere
+    ; (function () {
+        const glowCount = 3;
+        const glowColors = [
+            'rgba(0, 98, 255, 0.15)',
+            'rgba(255, 0, 32, 0.15)',
+            'rgba(255, 141, 0, 0.15)',
+            'rgba(174, 0, 255, 0.15)',
+            'rgba(255, 0, 170, 0.15)',
+            'rgba(255, 141, 0, 0.15)'
+        ];
+
+        class Glow {
+            constructor(center, r, speed, phase, color) {
+                this.cx = center.x;
+                this.cy = center.y;
+                this.r = r;
+                this.speed = speed;
+                this.theta = phase;
+                this.ellipse = 0.6 + Math.random() * 0.4;
+                this.direction = Math.random() > 0.5 ? 1 : -1
+                this.size = 20 + ~~(Math.random() * 10);
+
+                this.color = color;
+                this.element = document.createElement('div');
+                this.element.className = 'background-glow';
+                this.updatePosition();
+                bg.appendChild(this.element);
+            }
+            updatePosition() {
+                this.element.style.background = `radial-gradient(circle at ${this.x}% ${this.y}%, ${this.color} 0%, transparent ${this.size}%)`;
+            }
+            update(dt) {
+                this.theta += this.speed * dt * this.direction
+            }
+            get x() {
+                return this.cx + Math.cos(this.theta) * this.r;
+            }
+            get y() {
+                return this.cy + Math.sin(this.theta) * this.r * this.ellipse;
+            }
+        }
+
+        function generateCenters(n, spread = 15) {
+            const centers = [];
+
+            for (let i = 0; i < n; i++) {
+                const theta = 2 * Math.PI * (i / n);
+
+                centers.push({
+                    x: 50 + Math.cos(theta) * spread,
+                    y: 50 + Math.sin(theta) * spread
+                });
+            }
+
+            return centers;
+        }
+
+        const centers = generateCenters(glowCount, 18);
+        const offset = ~~(Math.random() * glowColors.length);
+        const glows = centers.map((c, i) => new Glow(
+            c,
+            4 + Math.random() * 8,
+            0.15 + Math.random() * 0.85,
+            (Math.random() + (1 / (i + 1))) * Math.PI * 2,
+            glowColors[(offset + i) % glowColors.length]
+        ));
+
+        function update(glows, dt) {
+            for (const p of glows) {
+                p.update(dt);
+                p.updatePosition();
+            }
+        }
+
+        let last = performance.now();
+        function loop(now) {
+            const dt = (now - last) * 0.001;
+            last = now;
+            update(glows, dt);
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+
+    })();
+
+    const atomsphere = document.createElement('div');
+    const atomsphereLight = document.createElement('div');
+    atomsphere.className = 'atomsphere';
+    atomsphereLight.className = 'atomsphere-light';
+    content.appendChild(atomsphere);
 
     // Countdown
-    const countdownContainer = document.querySelector('.countdown-container');
+    const countdownContainer = document.createElement('div');
     const countdown = document.createElement('div');
-    const countdownDays = document.createElement('div');
-    const countdownDaysNumber = document.createElement('div');
-    const countdownDaysUnit = document.createElement('div');
+    //const countdownDays = document.createElement('div');
+    //const countdownDaysNumber = document.createElement('div');
+    //const countdownDaysUnit = document.createElement('div');
     const countdownHours = document.createElement('div');
     const countdownHoursNumber = document.createElement('div');
     const countdownHoursUnit = document.createElement('div');
@@ -107,10 +239,11 @@
     const countdownSecondsNumber = document.createElement('div');
     const countdownSecondsUnit = document.createElement('div');
 
+    countdownContainer.className = 'countdown-container';
     countdown.className = 'countdown';
-    countdownDays.className = 'countdown-timer';
-    countdownDaysNumber.className = 'countdown-number';
-    countdownDaysUnit.className = 'countdown-unit';
+    //countdownDays.className = 'countdown-timer';
+    //countdownDaysNumber.className = 'countdown-number';
+    //countdownDaysUnit.className = 'countdown-unit';
     countdownHours.className = 'countdown-timer';
     countdownHoursNumber.className = 'countdown-number';
     countdownHoursUnit.className = 'countdown-unit';
@@ -121,15 +254,16 @@
     countdownSecondsNumber.className = 'countdown-number';
     countdownSecondsUnit.className = 'countdown-unit';
 
-    countdownDaysUnit.textContent = '天';
-    countdownHoursUnit.textContent = '小時';
-    countdownMinutesUnit.textContent = '分鐘';
-    countdownSecondsUnit.textContent = '秒鐘';
+    //countdownDaysUnit.textContent = 'Days';
+    countdownHoursUnit.textContent = 'Hours';
+    countdownMinutesUnit.textContent = 'Minutes';
+    countdownSecondsUnit.textContent = 'Seconds';
 
+    content.appendChild(countdownContainer);
     countdownContainer.appendChild(countdown);
-    countdown.appendChild(countdownDays);
-    countdownDays.appendChild(countdownDaysNumber);
-    countdownDays.appendChild(countdownDaysUnit);
+    //countdown.appendChild(countdownDays);
+    //countdownDays.appendChild(countdownDaysNumber);
+    //countdownDays.appendChild(countdownDaysUnit);
     countdown.appendChild(countdownHours);
     countdownHours.appendChild(countdownHoursNumber);
     countdownHours.appendChild(countdownHoursUnit);
@@ -141,7 +275,7 @@
     countdownSeconds.appendChild(countdownSecondsUnit);
 
     // Controller
-    const controllerContainer = document.querySelector('.controller-container');
+    const controllerContainer = document.createElement('div');
     const controller = document.createElement('div');
     const controllerFontSize = document.createElement('div');
     const controllerFontSizeDecrease = document.createElement('button');
@@ -152,6 +286,7 @@
     const controllerFullscreen = document.createElement('button');
     const controllerHide = document.createElement('button');
 
+    controllerContainer.className = 'controller-container';
     controller.className = 'controller';
     controllerFontSize.className = 'controller-font-size controller-group';
     controllerFontSizeDecrease.className = 'controller-font-size-decrease controller-button';
@@ -169,12 +304,13 @@
     controllerFullscreen.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
     controllerHide.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>`;
 
-    controllerFontSizeDecrease.setAttribute('data-tooltip', '減小字體大小');
-    controllerFontSizeIncrease.setAttribute('data-tooltip', '增大字體大小');
-    controllerFontSizeReset.setAttribute('data-tooltip', '重置字體大小');
-    controllerFullscreen.setAttribute('data-tooltip', '全螢幕');
-    controllerHide.setAttribute('data-tooltip', '隱藏 UI');
+    controllerFontSizeDecrease.setAttribute('data-tooltip', 'Reduce font size');
+    controllerFontSizeIncrease.setAttribute('data-tooltip', 'Increase font size');
+    controllerFontSizeReset.setAttribute('data-tooltip', 'Reset font size');
+    controllerFullscreen.setAttribute('data-tooltip', 'Enter full-screen mode');
+    controllerHide.setAttribute('data-tooltip', 'Hide UI');
 
+    content.appendChild(controllerContainer);
     controllerContainer.appendChild(controller);
     controller.appendChild(controllerFontSize);
     controllerFontSize.appendChild(controllerFontSizeDecrease);
@@ -185,10 +321,11 @@
     controllerView.appendChild(controllerFullscreen);
     // controllerView.appendChild(controllerHide);
 
+    let initialized = false;
     function updateCountdown() {
-        if (renderContent[0] != countdownDaysNumber.textContent) {
-            countdownDaysNumber.textContent = renderContent[0];
-        }
+        //if (renderContent[0] != countdownDaysNumber.textContent) {
+        //    countdownDaysNumber.textContent = renderContent[0];
+        //}
         if (renderContent[1] != countdownHoursNumber.textContent) {
             countdownHoursNumber.textContent = renderContent[1];
         }
@@ -199,20 +336,36 @@
             countdownSecondsNumber.textContent = renderContent[3];
         }
         if (remainingSeconds < 60) {
-            countdownDays.classList.add('invisible');
+            //bg.style.opacity = '0';
+            //if (!atomsphere.contains(atomsphereLight)) {
+            //    atomsphere.appendChild(atomsphereLight);
+            //}
+
+            // countdownDays.classList.add('invisible');
             countdownHours.classList.add('invisible');
             countdownMinutes.classList.add('invisible');
             countdownSecondsUnit.classList.add('invisible');
             countdownSecondsNumber.style.transform = 'scale(1.5)';
+            //countdownSecondsNumber.style.textShadow = '0 8px rgba(0, 0, 0, .2)';
         }
         if (remainingSeconds <= 0) {
+            if (initialized == true) {
+                return;
+            }
+            //atomsphere.remove();
+            const happyNewYear = document.createElement('div');
+            happyNewYear.textContent = 'Happy New Year!';
+            happyNewYear.className = 'happy-new-year';
+            content.appendChild(happyNewYear);
+            bg.style.opacity = '0';
             countdownSeconds.classList.add('invisible');
             init();
+            running = false;
         }
     }
 
     var showUI = false;
-    var scales = [0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.33, 0.4, 0.5, 0.66, 0.75, 0.8, 0.9, 1, 1.1, 1.2, 1.35, 1.5, 1.75, 2, 2.5, 3.25, 4, 5, 7.5, 8, 10];
+    var scales = [0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.33, 0.4, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.2, 1.35, 1.5, 1.75, 2, 2.5, 3.25, 4, 5, 6.7, 7.5, 8, 10];
     var scaleIndex = scales.indexOf(1);
     controllerFontSizeDecrease.addEventListener("click", () => {
         scaleIndex -= 1;
@@ -264,10 +417,10 @@
     function updateFullscreenIcon() {
         if (document.fullscreenElement) {
             controllerFullscreen.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minimize"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>`;
-            controllerFullscreen.setAttribute('data-tooltip', '離開全螢幕');
+            controllerFullscreen.setAttribute('data-tooltip', 'Exit full-screen mode');
         } else {
             controllerFullscreen.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
-            controllerFullscreen.setAttribute('data-tooltip', '全螢幕');
+            controllerFullscreen.setAttribute('data-tooltip', 'Enter full-screen mode');
         }
     }
     controllerFullscreen.addEventListener("click", () => {
@@ -288,15 +441,15 @@
     controllerHide.addEventListener('click', () => {
         showUI = !showUI == true;
         if (showUI == false) {
-            navbar.style.transform = 'translateY(-200%)';
+            //navbar.style.transform = 'translate(-50%, -200%)';
             controller.style.transform = 'translateY(200%)';
             controllerHide.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
-            controllerHide.setAttribute('data-tooltip', '顯示 UI');
+            controllerHide.setAttribute('data-tooltip', 'Show UI');
         } else {
-            navbar.style.transform = 'translateY(0)';
+            //navbar.style.transform = 'translate(-50%, 0%)';
             controller.style.transform = 'translateY(0)';
             controllerHide.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>`;
-            controllerHide.setAttribute('data-tooltip', '隱藏 UI');
+            controllerHide.setAttribute('data-tooltip', 'Hide UI');
         }
     })
     var lastMoveTime = Date.now();
@@ -307,20 +460,20 @@
             if (Date.now() - lastMoveTime < 2000 || showUI == true || underUI == true) {
                 return;
             } else {
-                navbar.style.transform = 'translateY(-200%)';
+                //navbar.style.transform = 'translate(-50%, -200%)';
                 controller.style.transform = 'translateY(200%)';
             }
         }, 2000);
     }
     function setUI(e) {
         if (showUI == false) {
-            if ((navbar.contains(e.target) || controller.contains(e.target)) && isTouchDevice == false) {
+            if ((/*navbar.contains(e.target) || */controller.contains(e.target)) && isTouchDevice == false) {
                 return underUI = true;
             } else {
                 underUI = false;
             }
             lastMoveTime = Date.now();
-            navbar.style.transform = 'translateY(0)';
+            //navbar.style.transform = 'translate(-50%, 0)';
             controller.style.transform = 'translateY(0)';
             hideUI();
         }
@@ -335,12 +488,12 @@
     update();
     preciseInterval(update);
 
-    var initialized = false;
     function init() {
         if (initialized == true) {
             return;
         }
         initialized = true;
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d', {
             willReadFrequently: true
@@ -361,11 +514,11 @@
                 this.size = random(3, 5);
                 this.alpha = Math.random() * .5 + .5;
             }
-            update() {
-                this.x += this.vx;
-                this.vy += gravity;
-                this.y += this.vy;
-                this.alpha -= 0.01;
+            update(dt) {
+                this.x += this.vx * dt;
+                this.vy += gravity * dt;
+                this.y += this.vy * dt;
+                this.alpha -= 0.0067;
                 if (this.y > canvas.offsetHeight + this.size * 2 || this.x < -this.size || this.x > canvas.offsetWidth + this.size || this.alpha <= 0) {
                     particles.splice(particles.indexOf(this), 1);
                 }
@@ -386,7 +539,7 @@
         function createFirework() {
             var x = random(canvas.offsetWidth / 4, canvas.offsetWidth / 4 * 3);
             var y = random(canvas.offsetHeight / 4, canvas.offsetHeight / 2);
-            var color = "rgb(" + random(55, 255) + "," + random(55, 255) + "," + random(55, 255) + ")";
+            var color = "rgb(" + random(120, 255) + "," + random(120, 225) + "," + random(120, 255) + ")";
             var count = random(100, 150)
             for (let i = 0; i < count; i++) {
                 var particle = new Particle(x, y);
@@ -399,8 +552,12 @@
             }
         }
 
+        let last = Date.now();
         function render() {
-            // canvasClarifier(canvas, ctx);
+            const now = Date.now();
+            const dt = (now - last) / 6;
+            last = now;
+
             ctx.globalCompositeOperation = 'source-over';
             ctx.fillStyle = "rgba(0,0,0,0.2)";
             ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
@@ -409,7 +566,7 @@
             }
             ctx.globalCompositeOperation = 'lighter';
             for (var i = 0; i < particles.length; i++) {
-                particles[i].update();
+                particles[i].update(dt);
             }
             for (var i = 0; i < particles.length; i++) {
                 particles[i].draw(ctx);

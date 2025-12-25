@@ -14,23 +14,23 @@
 *[data-tooltip]:hover:after {
     opacity: 1;
     visibility: visible;
-    -webkit-transform: translate(-50%, -8px) scale(1);
-    transform: translate(-50%, -8px) scale(1);
+    -webkit-transform: translate(-50%, -.5rem) scale(1);
+    transform: translate(-50%, -.5rem) scale(1);
     pointer-events: none;
 }
 
 *[data-tooltip]:after {
     position: absolute;
     content: attr(data-tooltip);
-    background: rgb(48, 48, 48);
-    padding: 12px;
+    background: rgb(251, 251, 251);
+    padding: .75rem;
     text-align: center;
-    color: #fff;
+    color: #000;
     font-size: 12px;
     white-space: nowrap;
-    border-radius: 8px;
-    -webkit-transform: translate(-50%, -8px) scale(0);
-    transform: translate(-50%, -8px) scale(0);
+    border-radius: .625rem;
+    -webkit-transform: translate(-50%, 0) scale(0);
+    transform: translate(-50%, 0) scale(0);
     display: flex;
     align-items: center;
     height: 12px;
@@ -43,8 +43,8 @@
     z-index: 5;
     opacity: 0;
     visibility: hidden;
-    -webkit-transition: 0.15s ease-in;
-    transition: 0.15s ease-in;
+    -webkit-transition: 0.15s ease-in-out;
+    transition: 0.15s ease-in-out;
 }
 
 a {
@@ -81,7 +81,7 @@ body {
     transition: all .2s ease-in-out;
 }
 
-.container {
+.app {
     width: 100vw;
     height: 100vh;
     position: absolute;
@@ -90,27 +90,55 @@ body {
     z-index: 9999;
 }
 
+.app-background {
+    width: inherit;
+    height: inherit;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    z-index: 0;
+    transition: opacity .2s ease-in-out;
+    /*background: radial-gradient(circle at 20% 30%, #0061ff1c 0%, transparent 30%), radial-gradient(circle at 70% 60%, #ff8d001c 0%, transparent 30%), radial-gradient(circle at 40% 80%, #ff00201c 0%, transparent 30%);*/
+}
+
+.background-glow {
+    width: inherit;
+    height: inherit;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    z-index: 0;
+}
+
+.app-content {
+    width: -webkit-fill-available;
+    height: -webkit-fill-available;
+    z-index: 99999;
+    overflow: hidden;
+}
+
 .navbar {
     position: fixed;
+    height: 3.75rem;
     top: 1rem;
-    left: 1rem;
+    left: 50%;
     right: 1rem;
     display: flex;
     flex-direction: row;
-    height: var(--navbar-height);
     align-items: center;
-    padding: 1rem;
-    gap: 8px;
+    padding: .5rem;
+    gap: 2rem;
     box-shadow: 0 0 0px 1px rgb(49 49 49);
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
     z-index: 99999999;
-    background: rgb(24 24 24 / 75%);
+    background: rgb(30 30 30 / 75%);
     backdrop-filter: blur(32px);
-    min-height: var(--navbar-height);
-    width: calc(100% - 2rem);
-    border-radius: .875rem;
+    width: fit-content;
+    border-radius: 1.325rem;
+    transform: translateX(-50%);
+    transition: all .25s ease-in-out;
 }
 
 .navbar-icon {
@@ -158,26 +186,37 @@ body {
     overflow: hidden;
 }
 
+.navbar-left {
+    padding: 0 .5rem;
+    padding-right: .25rem;
+}
+
 .navbar-right {
     margin-left: auto;
-    gap: 18px;
+    gap: 0rem;
+    overflow: visible;
 }
 
-.navbar-github {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    min-width: 40px;
-    min-height: 40px;
+.navbar-button {
+    --size: 2.75rem;
+    min-width: var(--size);
+    min-height: var(--size);
+    width: var(--size);
+    height: var(--size);
     cursor: pointer;
+    display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: .875rem;
 }
 
-.navbar-github svg {
-    width: var(--navbar-github-size);
-    height: var(--navbar-github-size);
-    fill: currentColor;
+.navbar-button:hover svg {
+    transform: scale(1.1);
+}
+
+.navbar-button svg {
+    width: 1.625rem;
+    height: 1.625rem;
 }
 
 .navbar-title {
@@ -190,6 +229,7 @@ body {
     flex: auto;
     min-width: 0;
     width: auto;
+    padding-left: .25rem;
 }
 
 .navbar-left {
@@ -203,12 +243,6 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
-}
-
-.content {
-    width: -webkit-fill-available;
-    height: -webkit-fill-available;
-    z-index: 99999;
 }
 
 .countdown-container {
@@ -248,10 +282,11 @@ body {
 }
 
 .countdown-unit {
-    background: rgb(30, 30, 30);
+    background: rgb(30 30 30 / 65%);
     padding: .5rem .75rem;
     border-radius: 999rem;
     box-shadow: 0 0 0px 1px rgb(49 49 49);
+    backdrop-filter: blur(16px) saturate(1.5);
 }
 
 .controller-container {
@@ -265,7 +300,8 @@ body {
 }
 
 .controller {
-    background: rgb(31 31 31);
+    background: rgb(31 31 31 / 64%);
+    backdrop-filter: blur(16px) saturate(1.5);
     padding: .5rem;
     border-radius: 1rem;
     display: flex;
@@ -313,6 +349,10 @@ body {
     box-shadow: 0px 0px 0px 2px rgb(62, 123, 255);
 }
 
+.controller-button:active svg {
+    transform: scale(.9);
+}
+
 .controller-button svg {
     width: 1.25rem;
     height: 1.25rem;
@@ -348,4 +388,83 @@ body {
 
 .invisible {
     display: none;
+}
+
+.options-window-container {
+    top: 90px;
+    left: 496px;
+    position: absolute;
+    width: fit-content;
+    height: fit-content;
+    z-index: -1;
+    pointer-events: none;
+    transition: transform .2s ease-in-out, opacity .1s ease-in-out;
+    transform: scale(.8) translate(0, -3rem);
+    opacity: 0;
+}
+
+.options-window-container.active {
+    position: absolute;
+    width: fit-content;
+    height: fit-content;
+    z-index: 999999;
+    transform: translate(0);
+    opacity: 1;
+}
+
+.options-window {
+    background: rgb(30 30 30 / 75%);
+    width: 15rem;
+    height: 20rem;
+    border-radius: 1rem;
+    backdrop-filter: blur(32px);
+    box-shadow: 0 0 0px 1px rgb(49 49 49);
+}
+
+/*
+.atomsphere-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+.atomsphere-light {
+    position: absolute;
+    left: 50%;
+    top: 0%;
+    width: 0%;
+    height: 0%;
+    transform: translateX(-50%);
+    display: block;
+    background: conic-gradient(at 50% 0%, transparent 150deg, #fff1bf 180deg, transparent 210deg);
+    mask-image: linear-gradient(to bottom, black, transparent);
+    transition: all .1s ease-out;
+    animation: light-up 300ms ease-out 1 forwards;
+}
+
+@keyframes light-up {
+    to {
+        width: 100%;
+        height: 100%;
+    }
+}*/
+
+.happy-new-year {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    text-align: center;
+    transform: translate(-50%, -50%) scale(0);
+    font-weight: bold;
+    font-size: calc(6rem*var(--countdown-scale));
+    user-select: none;
+    color: #ffffff;
+    pointer-events: none;
+    animation: show-happy-new-year 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275) 1 forwards;
+}
+
+@keyframes show-happy-new-year {
+    to {
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
